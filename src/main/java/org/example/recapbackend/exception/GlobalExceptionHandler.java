@@ -11,7 +11,7 @@ import java.util.NoSuchElementException;
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 
-    public static final String GENERIC_EXCEPTION_MESSAGE = "Something went wrong";
+    public static final String GENERIC_EXCEPTION_MESSAGE = "Something went wrong.";
 
     @ExceptionHandler
     @ResponseStatus(HttpStatus.BAD_REQUEST)

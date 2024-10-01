@@ -1,29 +1,40 @@
 package org.example.recapbackend.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.example.recapbackend.chatgpt.dto.ChatGptResponse;
+import org.example.recapbackend.chatgpt.dto.ChatGptResponseChoice;
+import org.example.recapbackend.chatgpt.dto.ChatGptResponseChoiceMessage;
 import org.example.recapbackend.dto.RequestItem;
 import org.example.recapbackend.model.TodoItem;
 import org.example.recapbackend.model.TodoRepository;
 import org.example.recapbackend.model.TodoStatus;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.web.client.AutoConfigureMockRestServiceServer;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.http.HttpMethod;
 import org.springframework.http.MediaType;
 import org.springframework.test.annotation.DirtiesContext;
+import org.springframework.test.web.client.MockRestServiceServer;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
 
+import java.util.List;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.springframework.test.web.client.match.MockRestRequestMatchers.method;
+import static org.springframework.test.web.client.match.MockRestRequestMatchers.requestTo;
+import static org.springframework.test.web.client.response.MockRestResponseCreators.withSuccess;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @SpringBootTest
 @AutoConfigureMockMvc
+@AutoConfigureMockRestServiceServer
 class TodoControllerTest {
 
     private static final Long ID_FIRST = 1L;
@@ -31,6 +42,7 @@ class TodoControllerTest {
     private static final Long ID_THIRD = 3L;
     private static final String DESCRIPTION_FIRST = "First todo";
     private static final String DESCRIPTION_SECOND = "Second todo";
+    private static final String DESCRIPTION_CORRECTED = "Corrected todo";
     private static final TodoStatus STATUS_FIRST = TodoStatus.DONE;
     private static final TodoStatus STATUS_SECOND = TodoStatus.OPEN;
     private static final String PATH_BASIC = "/api/todo";
@@ -41,9 +53,12 @@ class TodoControllerTest {
     private MockMvc mvc;
 
     @Autowired
+    private MockRestServiceServer mockRestServiceServer;
+
+    @Autowired
     private TodoRepository repository;
 
-    public static String asJsonString(final Object obj) {
+    private static String asJsonString(final Object obj) {
         try {
             return new ObjectMapper().writeValueAsString(obj);
         } catch (Exception e) {
@@ -54,6 +69,26 @@ class TodoControllerTest {
     private void initializeData() throws Exception {
         repository.save(TodoItem.builder().description(DESCRIPTION_FIRST).status(STATUS_FIRST).build());
         repository.save(TodoItem.builder().description(DESCRIPTION_SECOND).status(STATUS_SECOND).build());
+    }
+
+    private void setUpChatGptMock(String response) throws Exception {
+        ChatGptResponse chatGptResponse = new ChatGptResponse(
+                List.of(
+                        new ChatGptResponseChoice(
+                                new ChatGptResponseChoiceMessage(
+                                        "User",
+                                        response
+                                )
+                        )
+                )
+        );
+        mockRestServiceServer.expect(requestTo("https://api.openai.com/v1/chat/completions"))
+                .andExpect(method(HttpMethod.POST))
+                .andRespond(
+                        withSuccess(
+                                asJsonString(chatGptResponse),
+                                MediaType.APPLICATION_JSON)
+                );
     }
 
     @Test
@@ -100,13 +135,14 @@ class TodoControllerTest {
     @Test
     @DirtiesContext
     void postTodoTest() throws Exception {
+        setUpChatGptMock(DESCRIPTION_CORRECTED);
         mvc.perform(
                         post(PATH_BASIC)
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .content(asJsonString(new RequestItem(DESCRIPTION_SECOND, STATUS_SECOND))))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("id").value(ID_FIRST))
-                .andExpect(jsonPath("description").value(DESCRIPTION_SECOND))
+                .andExpect(jsonPath("description").value(DESCRIPTION_CORRECTED))
                 .andExpect(jsonPath("status").value(STATUS_SECOND.toString())
                 );
 
@@ -114,7 +150,7 @@ class TodoControllerTest {
         assertTrue(todoItemOptional.isPresent());
         TodoItem todoItem = todoItemOptional.get();
         assertEquals(ID_FIRST, todoItem.getId());
-        assertEquals(DESCRIPTION_SECOND, todoItem.getDescription());
+        assertEquals(DESCRIPTION_CORRECTED, todoItem.getDescription());
         assertEquals(STATUS_SECOND, todoItem.getStatus());
 
     }

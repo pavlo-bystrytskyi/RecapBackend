@@ -1,6 +1,7 @@
 package org.example.recapbackend.service;
 
 import lombok.RequiredArgsConstructor;
+import org.example.recapbackend.chatgpt.service.ChatGptService;
 import org.example.recapbackend.model.TodoItem;
 import org.example.recapbackend.model.TodoRepository;
 import org.springframework.stereotype.Service;
@@ -17,6 +18,8 @@ public class TodoService {
 
     private final TodoRepository repository;
 
+    private final ChatGptService chatGptService;
+
     public List<TodoItem> getAll() {
         return repository.findAll();
     }
@@ -31,7 +34,9 @@ public class TodoService {
     }
 
     public TodoItem create(TodoItem item) {
-        return repository.save(item);
+        String correctedDescription = chatGptService.correctText(item.getDescription());
+
+        return repository.save(item.withDescription(correctedDescription));
     }
 
     public TodoItem update(Long id, TodoItem item) {
