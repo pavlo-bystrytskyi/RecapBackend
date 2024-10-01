@@ -44,6 +44,11 @@ public class TodoService {
     }
 
     public void delete(Long id) {
+        Optional<TodoItem> itemToDelete = repository.findById(id);
+        if (itemToDelete.isEmpty()) {
+            throw new NoSuchElementException(NOT_FOUND_MESSAGE.formatted(id));
+        }
+
         repository.deleteById(id);
     }
 }
