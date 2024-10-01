@@ -3,7 +3,7 @@ package org.example.recapbackend.dto;
 import org.example.recapbackend.model.TodoItem;
 import org.example.recapbackend.model.TodoStatus;
 
-public record RequestItem(
+public record TodoRequestItem(
         String description,
         TodoStatus status
 ) {

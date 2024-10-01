@@ -4,6 +4,7 @@ import lombok.RequiredArgsConstructor;
 import org.example.recapbackend.chatgpt.service.ChatGptService;
 import org.example.recapbackend.model.TodoItem;
 import org.example.recapbackend.model.TodoRepository;
+import org.example.recapbackend.model.TodoStatus;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -19,6 +20,16 @@ public class TodoService {
     private final TodoRepository repository;
 
     private final ChatGptService chatGptService;
+
+    public void initialize(String topic) {
+        repository.deleteAll();
+        List<String> generatedTodo = chatGptService.generate(topic);
+        generatedTodo.stream()
+                .map(
+                        (description) -> TodoItem.builder().status(TodoStatus.OPEN).description(description).build()
+                )
+                .forEach(repository::save);
+    }
 
     public List<TodoItem> getAll() {
         return repository.findAll();

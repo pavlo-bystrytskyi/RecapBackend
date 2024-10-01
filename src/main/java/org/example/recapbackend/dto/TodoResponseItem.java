@@ -7,13 +7,13 @@ import org.example.recapbackend.model.TodoStatus;
 
 @Data
 @Builder
-public class ResponseItem {
+public class TodoResponseItem {
     private final Long id;
     private final String description;
     private final TodoStatus status;
 
-    public static ResponseItem fromModel(TodoItem item) {
-        return ResponseItem.builder()
+    public static TodoResponseItem fromModel(TodoItem item) {
+        return TodoResponseItem.builder()
                 .id(item.getId())
                 .description(item.getDescription())
                 .status(item.getStatus())

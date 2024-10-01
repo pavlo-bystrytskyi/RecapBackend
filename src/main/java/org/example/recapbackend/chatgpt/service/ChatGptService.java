@@ -8,14 +8,22 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestClient;
 
+import java.util.Arrays;
 import java.util.List;
 
 @Service
 public class ChatGptService {
-    private static final String PROMPT_TEMPLATE = """
+    private static final String PROMPT_CORRECT_TEMPLATE = """
             Perform a spelling and grammar correction of the following text.
             Provide only the corrected version of the text in your response, without any additional comments or explanations.
             Here is the text to correct:
+            %s
+            """;
+
+    private static final String PROMPT_GENERATE_TEMPLATE = """
+            Generate 20 new todo items.
+            Return only the list of items separated by ###.
+            Topic is:
             %s
             """;
 
@@ -31,9 +39,18 @@ public class ChatGptService {
     }
 
     public String correctText(String text) {
-        String prompt = PROMPT_TEMPLATE.formatted(text);
+        String prompt = PROMPT_CORRECT_TEMPLATE.formatted(text);
 
         return complete(prompt).choices().getFirst().message().content();
+    }
+
+    public List<String> generate(String topic) {
+        String prompt = PROMPT_GENERATE_TEMPLATE.formatted(topic);
+        ChatGptResponse response = complete(prompt);
+
+        return Arrays.stream(response.choices().getFirst().message().content().split("###"))
+                .map(String::trim)
+                .toList();
     }
 
     private ChatGptResponse complete(

@@ -1,8 +1,8 @@
 package org.example.recapbackend.controller;
 
 import lombok.RequiredArgsConstructor;
-import org.example.recapbackend.dto.RequestItem;
-import org.example.recapbackend.dto.ResponseItem;
+import org.example.recapbackend.dto.TodoRequestItem;
+import org.example.recapbackend.dto.TodoResponseItem;
 import org.example.recapbackend.model.TodoItem;
 import org.example.recapbackend.service.TodoService;
 import org.springframework.web.bind.annotation.*;
@@ -17,33 +17,40 @@ public class TodoController {
     private final TodoService service;
 
     @GetMapping
-    public List<ResponseItem> getAllTodos() {
-        return service.getAll().stream().map(ResponseItem::fromModel).toList();
+    public List<TodoResponseItem> getAllTodos() {
+        return service.getAll().stream().map(TodoResponseItem::fromModel).toList();
     }
 
-    @GetMapping("{id}")
-    public ResponseItem getTodoById(@PathVariable Long id) {
+    @GetMapping("/{id}")
+    public TodoResponseItem getTodoById(@PathVariable Long id) {
         TodoItem item = service.get(id);
 
-        return ResponseItem.fromModel(item);
+        return TodoResponseItem.fromModel(item);
     }
 
     @PostMapping
-    public ResponseItem postTodo(@RequestBody RequestItem data) {
+    public TodoResponseItem postTodo(@RequestBody TodoRequestItem data) {
         TodoItem item = service.create(data.toModel());
 
-        return ResponseItem.fromModel(item);
+        return TodoResponseItem.fromModel(item);
     }
 
-    @PutMapping("{id}")
-    public ResponseItem putTodo(@PathVariable Long id, @RequestBody RequestItem data) {
+    @PutMapping("/{id}")
+    public TodoResponseItem putTodo(@PathVariable Long id, @RequestBody TodoRequestItem data) {
         TodoItem item = service.update(id, data.toModel());
 
-        return ResponseItem.fromModel(item);
+        return TodoResponseItem.fromModel(item);
     }
 
-    @DeleteMapping("{id}")
+    @DeleteMapping("/{id}")
     public void deleteTodo(@PathVariable Long id) {
         service.delete(id);
+    }
+
+    @PostMapping("/initialize/{topic}")
+    public List<TodoResponseItem> initializeTopic(@PathVariable String topic) {
+        service.initialize(topic);
+
+        return getAllTodos();
     }
 }

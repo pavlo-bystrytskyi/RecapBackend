@@ -1,5 +1,6 @@
 package org.example.recapbackend.exception;
 
+import lombok.extern.slf4j.Slf4j;
 import org.example.recapbackend.dto.ResponseError;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -8,6 +9,7 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 
 import java.util.NoSuchElementException;
 
+@Slf4j
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 
@@ -22,6 +24,7 @@ public class GlobalExceptionHandler {
     @ExceptionHandler
     @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
     public ResponseError handleGlobalException(Exception exception) {
+        log.error("Exception occurred: ", exception);
         return new ResponseError(GENERIC_EXCEPTION_MESSAGE);
     }
 }

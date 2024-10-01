@@ -4,7 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import org.example.recapbackend.chatgpt.dto.ChatGptResponse;
 import org.example.recapbackend.chatgpt.dto.ChatGptResponseChoice;
 import org.example.recapbackend.chatgpt.dto.ChatGptResponseChoiceMessage;
-import org.example.recapbackend.dto.RequestItem;
+import org.example.recapbackend.dto.TodoRequestItem;
 import org.example.recapbackend.model.TodoItem;
 import org.example.recapbackend.model.TodoRepository;
 import org.example.recapbackend.model.TodoStatus;
@@ -139,7 +139,7 @@ class TodoControllerTest {
         mvc.perform(
                         post(PATH_BASIC)
                                 .contentType(MediaType.APPLICATION_JSON)
-                                .content(asJsonString(new RequestItem(DESCRIPTION_SECOND, STATUS_SECOND))))
+                                .content(asJsonString(new TodoRequestItem(DESCRIPTION_SECOND, STATUS_SECOND))))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("id").value(ID_FIRST))
                 .andExpect(jsonPath("description").value(DESCRIPTION_CORRECTED))
@@ -162,7 +162,7 @@ class TodoControllerTest {
         mvc.perform(
                         put(PATH_PARAMETRIZED, ID_FIRST)
                                 .contentType(MediaType.APPLICATION_JSON)
-                                .content(asJsonString(new RequestItem(DESCRIPTION_SECOND, STATUS_SECOND))))
+                                .content(asJsonString(new TodoRequestItem(DESCRIPTION_SECOND, STATUS_SECOND))))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("id").value(ID_FIRST))
                 .andExpect(jsonPath("description").value(DESCRIPTION_SECOND))
@@ -184,7 +184,7 @@ class TodoControllerTest {
         mvc.perform(
                         put(PATH_PARAMETRIZED, ID_THIRD)
                                 .contentType(MediaType.APPLICATION_JSON)
-                                .content(asJsonString(new RequestItem(DESCRIPTION_SECOND, STATUS_SECOND))))
+                                .content(asJsonString(new TodoRequestItem(DESCRIPTION_SECOND, STATUS_SECOND))))
                 .andExpect(status().is4xxClientError())
                 .andExpect(jsonPath("error").value(MESSAGE_ERROR.formatted(ID_THIRD)));
 
